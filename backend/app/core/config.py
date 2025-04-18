@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     SMTP_SERVER: str
     SMTP_PORT: int
     SMTP_USERNAME: str
+    SMTP_FROM: str
     SMTP_PASSWORD: str
     
     # Token settings

@@ -9,8 +9,8 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
-    ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    # ports:
+    #   - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     restart: ${RESTART}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
@@ -29,8 +29,8 @@ services:
       dockerfile: Dockerfile.prod
     volumes:
       - ./gpx:/gpx
-    ports:
-      - "8000:8000"
+    # ports:
+    #   - "8000:8000"
     environment:
       - TZ=${TZ}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}
@@ -40,6 +40,7 @@ services:
       - SMTP_SERVER=${SMTP_SERVER}
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_FROM=${SMTP_FROM}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - FRONTEND_URL=${FRONTEND_URL}
       - PROJECT_NAME=${PROJECT_NAME}
@@ -56,6 +57,7 @@ services:
       start_period: 10s
     networks:
       - k100
+      - proxy
 
   frontend:
     container_name: k100-frontend
@@ -63,8 +65,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
-    ports:
-      - "3000:3000"
+    # ports:
+    #   - "3000:3000"
     environment:
       - TZ=${TZ}
       - API_URL=${API_URL}
@@ -91,6 +93,7 @@ services:
       - SMTP_SERVER=${SMTP_SERVER}
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_FROM=${SMTP_FROM}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - SOURCE_GPX_PATH=gpx
       - FRONTEND_URL=${FRONTEND_URL}

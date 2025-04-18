@@ -30,7 +30,7 @@ def send_email(
     # Create message container
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = settings.SMTP_USERNAME
+    msg["From"] = settings.SMTP_FROM
     msg["To"] = to_email
     
     # Add CC recipients if provided
@@ -55,18 +55,18 @@ def send_email(
         # Connect to server and send email
         if settings.SMTP_PORT == 1025:  # For Mailpit testing (no auth, no SSL/TLS)
             with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT) as server:
-                server.sendmail(settings.SMTP_USERNAME, recipients, msg.as_string())
+                server.sendmail(settings.SMTP_FROM, recipients, msg.as_string())
         elif settings.SMTP_PORT == 465:  # For SSL connections
             with smtplib.SMTP_SSL(settings.SMTP_SERVER, settings.SMTP_PORT, context=context) as server:
                 server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
-                server.sendmail(settings.SMTP_USERNAME, recipients, msg.as_string())
+                server.sendmail(settings.SMTP_FROM, recipients, msg.as_string())
         else:  # For TLS connections (usually port 587)
             with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT) as server:
                 server.ehlo()
                 server.starttls(context=context)
                 server.ehlo()
                 server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
-                server.sendmail(settings.SMTP_USERNAME, recipients, msg.as_string())
+                server.sendmail(settings.SMTP_FROM, recipients, msg.as_string())
         return True
     except Exception as e:
         # Log the error

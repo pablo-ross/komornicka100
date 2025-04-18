@@ -34,7 +34,7 @@ def send_email(
     # Create message container
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
-    msg["From"] = settings.SMTP_USERNAME
+    msg["From"] = settings.SMTP_FROM
     msg["To"] = to_email
     
     # Add CC recipients if provided

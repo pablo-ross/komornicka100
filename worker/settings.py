@@ -23,6 +23,7 @@ class Settings:
     # Email settings
     SMTP_SERVER = os.getenv("SMTP_SERVER", "localhost")
     SMTP_PORT = int(os.getenv("SMTP_PORT", "25"))
+    SMTP_FROM = os.getenv("SMTP_FROM", "")
     SMTP_USERNAME = os.getenv("SMTP_USERNAME", "")
     SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
     
