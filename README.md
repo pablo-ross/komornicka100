@@ -13,8 +13,8 @@ This is a web application for the **Komornicka 100** that allows users to regist
 
 1. Clone the repository
 ```bash
-git clone https://github.com/pablo-ross/k100.git
-cd k100
+git clone https://github.com/pablo-ross/komornicka100.git
+cd komornicka100
 ```
 
 2. Create environment variables file
