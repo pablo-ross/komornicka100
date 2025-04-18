@@ -17,7 +17,9 @@ services:
       db:
         condition: service_healthy
     restart: ${RESTART}
+    # No external access - only accessible from localhost
     networks:
+      - default
       - k100
 
   db:
@@ -147,7 +149,9 @@ services:
       - MP_DATABASE=/data/mailpit.db
       - MP_SMTP_AUTH_ACCEPT_ANY=1
       - MP_SMTP_AUTH_ALLOW_INSECURE=1
+    # No external access - only accessible from localhost
     networks:
+      - default
       - k100
 
   cloudflared:
