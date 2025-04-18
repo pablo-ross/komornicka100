@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "KMTB Contest DB",
+      "Group": "Servers",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "kmtb_contest",
+      "Username": "kmtb_user",
+      "SSLMode": "prefer",
+      "Comment": "KMTB Contest PostgreSQL Server"
+    }
+  }
+}

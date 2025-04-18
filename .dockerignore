@@ -1,0 +1,115 @@
+# Git
+.git
+.gitignore
+.github
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Node.js / Next.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.next/
+out/
+.vercel
+.turbo
+*.tsbuildinfo
+next-env.d.ts
+
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE
+docs/
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+
+# GPX files (if stored locally during development)
+*.gpx
+
+# Test data
+tests/
+test/
+__tests__/
+
+# CI configuration
+.travis.yml
+.gitlab-ci.yml
+.circleci/
+azure-pipelines.yml
+
+# Cached files
+.mypy_cache/
+.ruff_cache/
+
+# Other
+*.md
+*.csv
+*.dat
+*.gz
+*.tar
+*.zip

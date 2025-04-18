@@ -1,0 +1,11 @@
+sqlalchemy==2.0.20
+psycopg2-binary==2.9.7
+pydantic==2.3.0
+pydantic-settings==2.0.3
+schedule==1.2.0
+gpxpy==1.5.0
+httpx==0.24.1
+python-dotenv==1.0.0
+pytz==2023.3
+numpy<2.0  # Ensuring compatibility with Shapely
+shapely==1.8.5  # Using an older version that works with numpy
