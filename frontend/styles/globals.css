@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #3b82f6;
-  --primary-hover: #2563eb;
+  --primary-color: #28a745;
+  --primary-hover: #145523;
   --strava-orange: #FC4C02;
 }
 
