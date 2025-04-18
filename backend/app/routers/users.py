@@ -445,7 +445,7 @@ def send_verification_email(email: str, first_name: str, verify_url: str) -> Non
         <p><a href="{verify_url}">Verify Email</a></p>
         <p>This link will expire in 48 hours.</p>
         <p>If you did not register for this event, please ignore this email.</p>
-        <p>Best regards,<br>KMTB Team</p>
+        <p>Best regards,<br>{settings.PROJECT_NAME} Team</p>
     </body>
     </html>
     """
@@ -466,7 +466,7 @@ def send_delete_confirmation_email(email: str, first_name: str, delete_url: str)
         <p><a href="{delete_url}">Confirm Account Deletion</a></p>
         <p>This link will expire in 48 hours.</p>
         <p>If you did not request this, please ignore this email or contact us.</p>
-        <p>Best regards,<br>KMTB Team</p>
+        <p>Best regards,<br>{settings.PROJECT_NAME} Team</p>
     </body>
     </html>
     """
@@ -484,7 +484,7 @@ def send_deletion_complete_email(email: str, first_name: str) -> None:
         <h1>Hello {first_name},</h1>
         <p>Your account and all associated data have been deleted from the {settings.PROJECT_NAME}.</p>
         <p>We're sorry to see you go, but you're welcome to join again in the future.</p>
-        <p>Best regards,<br>KMTB Team</p>
+        <p>Best regards,<br>{settings.PROJECT_NAME} Team</p>
     </body>
     </html>
     """

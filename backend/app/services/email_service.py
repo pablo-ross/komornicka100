@@ -104,7 +104,7 @@ def send_activity_verification_email(
         <p><strong>Date:</strong> {activity_date}</p>
         <p><strong>Route:</strong> {source_gpx_name}</p>
         <p>This activity has been added to your contest profile. Keep up the great work!</p>
-        <p>Best regards,<br>KMTB Team</p>
+        <p>Best regards,<br>{settings.PROJECT_NAME} Team</p>
     </body>
     </html>
     """
@@ -134,7 +134,7 @@ def send_strava_connected_email(
         <p>Congratulations! Your Strava account has been successfully connected to the {settings.PROJECT_NAME}.</p>
         <p>We'll now automatically check your Strava activities for matching routes. When we find a match, you'll receive a notification.</p>
         <p>Thank you for participating in the contest!</p>
-        <p>Best regards,<br>KMTB Team</p>
+        <p>Best regards,<br>{settings.PROJECT_NAME} Team</p>
     </body>
     </html>
     """

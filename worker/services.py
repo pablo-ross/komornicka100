@@ -95,7 +95,7 @@ def send_activity_verification_email(
         <p><strong>Date:</strong> {activity_date}</p>
         <p><strong>Route:</strong> {source_gpx_name}</p>
         <p>This activity has been added to your contest profile. Keep up the great work!</p>
-        <p>Best regards,<br>KMTB Team</p>
+        <p>Best regards,<br>{settings.PROJECT_NAME} Team</p>
     </body>
     </html>
     """
