@@ -6,8 +6,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy worker script
-COPY worker.py .
+# Copy worker scripts
+COPY . .
+
+# Create directory for GPX files
+RUN mkdir -p /gpx
 
 # Command to run the worker
 CMD ["python", "worker.py"]

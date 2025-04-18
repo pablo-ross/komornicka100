@@ -29,7 +29,8 @@ export default function DeleteAccount() {
         
         setIsSuccess(true);
       } catch (error) {
-        setError(error.message || 'Something went wrong');
+        // Handle the error with proper TypeScript type checking
+        setError(error instanceof Error ? error.message : 'Something went wrong');
         setIsSuccess(false);
       } finally {
         setIsProcessing(false);

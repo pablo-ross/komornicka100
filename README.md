@@ -1,8 +1,8 @@
-# Komornicka 100 - Komorniki MTB Team Bike Contest System
+# Komornicka 100 - Bike Contest System
 
-This is a web application for the **Komornicka 100** that allows users to register, connect their Strava accounts, and have their bike activities automatically verified against a predefined route.
+A web application for the **Komornicka 100** cycling contest that allows users to register, connect their Strava accounts, and have their cycling activities automatically verified against predefined routes.
 
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
@@ -11,107 +11,136 @@ This is a web application for the **Komornicka 100** that allows users to regist
 
 ### Installation
 
-1. Clone the repository
+1. Clone the repository:
 ```bash
-git clone https://github.com/pablo-ross/komornicka100.git
-cd komornicka100
+git clone https://github.com/yourusername/kmtb-contest.git
+cd kmtb-contest
 ```
 
-2. Create environment variables file
+2. Run the setup script:
 ```bash
-cp .env.example .env
-cp frontend/.env.local.example frontend/.env.local
+chmod +x setup.sh
+./setup.sh
 ```
 
-3. Edit the `.env` file with your own settings
+3. Edit the configuration files:
 ```bash
-# Use your favorite editor
-nano .env
-nano frontend/.env.local
+nano .env                  # Main environment variables
+nano frontend/.env.local   # Frontend-specific variables
 ```
 
-4. Start the application with Docker Compose
+4. Add your GPX route files to the `gpx/` directory
+
+5. Start the application in development mode:
 ```bash
-docker network create --driver=bridge --internal k100
-docker network create --driver=bridge proxy
-docker-compose up -d
+./run.sh dev
 ```
 
-5. The application should now be running at:
+6. Access the application:
    - Frontend: http://localhost:3000
    - API: http://localhost:8000
-   - Mailpit: http://localhost:8025
+   - Mailpit (for email testing): http://localhost:8025
    - PgAdmin: http://localhost:5050
+
+## Key Features
+
+- User registration with email verification
+- Strava integration for activity tracking
+- Automatic verification of cycling activities against predefined routes
+- Leaderboard showing top participants
+- Background worker for processing activities
+- Email notifications for verified activities
+
+## System Architecture
+
+- **Frontend**: Next.js application
+- **Backend API**: FastAPI service
+- **Worker**: Python service for background jobs
+- **Database**: PostgreSQL for data storage
+- **PgAdmin**: Web interface for database management
+- **Mailpit**: Development mail server for testing
+
+## Development vs. Production
+
+### Development Mode
+
+Start in development mode for local testing and development:
+
+```bash
+./run.sh dev
+```
+
+Development mode features:
+- Hot reloading for frontend and backend code
+- Mailpit for email testing
+- Debug logging
+- PgAdmin with direct access
+
+### Production Mode
+
+Deploy in production mode for live environments:
+
+```bash
+./run.sh prod
+```
+
+Production mode options:
+- Basic mode: Direct access to services
+- NGINX mode: With NGINX as reverse proxy, SSL support, and proper routing
+
+## Documentation
+
+Detailed documentation is available in the following files:
+
+- [DEVELOPER.md](DEVELOPER.md) - Comprehensive guide for developers
+- [STRAVA_SETUP.md](STRAVA_SETUP.md) - How to set up the Strava API integration
+- [GPX_VERIFICATION.md](GPX_VERIFICATION.md) - Details on the GPX route verification logic
+
+## GPX Verification Logic
+
+The system verifies cycling activities by:
+
+1. Retrieving GPS data from Strava
+2. Comparing it against predefined routes
+3. Calculating a similarity score based on how closely the activity matches the route
+4. Verifying activities that meet the similarity threshold and minimum distance requirements
+
+Key verification parameters (configurable in `.env`):
+- `ROUTE_SIMILARITY_THRESHOLD`: Percentage of points that must match (default: 80%)
+- `GPS_MAX_DEVIATION_METERS`: Maximum allowed distance from route (default: 20 meters)
+- `MIN_ACTIVITY_DISTANCE_KM`: Minimum activity distance (default: 100 km)
 
 ## Project Structure
 
-- `backend/` - FastAPI application for the backend API
-- `frontend/` - Next.js application for the frontend
-- `worker/` - Python script for background jobs (checking Strava activities)
-- `docker-compose.yml` - Docker Compose configuration
-- `.env` - Environment variables
-
-## Development
-
-To run the project in development mode:
-
-```bash
-docker network create -d bridge k100
-docker compose up -d
+```
+kmtb-contest/
+├── backend/             # FastAPI backend application
+│   ├── app/             # Application code
+│   │   ├── routers/     # API endpoints
+│   │   ├── services/    # Business logic
+│   │   └── models.py    # Database models
+│   └── Dockerfile       # Docker configuration
+├── frontend/            # Next.js frontend application
+│   ├── components/      # React components
+│   ├── pages/           # Next.js pages
+│   ├── styles/          # CSS styles
+│   └── hooks/           # React hooks
+├── worker/              # Background worker
+├── gpx/                 # GPX route files
+├── nginx/               # NGINX configuration (for production)
+├── docker-compose.yml           # Development Docker Compose
+├── docker-compose.prod.yml      # Production Docker Compose
+└── run.sh               # Helper script for running the application
 ```
 
-This will start all services and display logs in the console.
+## Contributing
 
-## Environment Variables
-
-The following environment variables are used in the project:
-
-- `RESTART` - Docker container restart policy
-- `TZ` - Timezone for all services
-- `POSTGRES_USER` - PostgreSQL username
-- `POSTGRES_PASSWORD` - PostgreSQL password
-- `POSTGRES_DB` - PostgreSQL database name
-- `POSTGRES_PORT` - PostgreSQL port
-- `SMTP_SERVER` - SMTP server for sending emails
-- `SMTP_PORT` - SMTP port
-- `SMTP_USERNAME` - SMTP username
-- `SMTP_PASSWORD` - SMTP password
-- `SECRET_KEY` - Secret key for JWT token generation
-- `STRAVA_CLIENT_ID` - Strava API client ID
-- `STRAVA_CLIENT_SECRET` - Strava API client secret
-- `PGADMIN_EMAIL` - PgAdmin login
-- `PGADMIN_PASSWORD` - PgAdmin password
-- `PGADMIN_LISTEN_PORT` - PgAdmin local port
-- `TUNNEL_TOKEN` - Token for Cloudflare tunnel
-
-## GPX verification logic
-
-The current verification logic checks how closely a user's activity route matches the original source GPX route by comparing the GPS points. It doesn't specifically require the user to start and finish at the exact same points as the original route.
-
-Here's how the verification works:
-
-1. The system converts both the source GPX and the user's activity into sequences of GPS points
-2. It simplifies these routes using the Douglas-Peucker algorithm to improve processing efficiency
-3. For each point in the user's activity, it calculates the distance to the closest point on the source GPX route
-4. It counts how many of these points are within the maximum deviation threshold (set to 20 meters by default)
-5. The similarity score is the percentage of points that are within this threshold
-
-The key parts of this logic are in the `verify_activity_against_source` and `calculate_similarity` functions in the GPX comparison code.
-
-The system does not specifically check if:
-
-- The starting point matches
-- The ending point matches
-- The direction of travel matches
-
-It only checks overall route similarity based on the percentage of points that are close to the original route.
-
-If you want to enforce starting and ending at specific points, you'd need to add additional checks to the verification logic. This could be done by:
-
-1. Extracting the first and last points from both routes
-2. Calculating the distance between the starting points and between the ending points
-3. Requiring these distances to be within a certain threshold
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/my-feature`
+3. Commit your changes: `git commit -am 'Add my feature'`
+4. Push to the branch: `git push origin feature/my-feature`
+5. Submit a pull request
 
 ## License
 
-[MIT](LICENSE)
+This project is licensed under the MIT License - see the LICENSE file for details.

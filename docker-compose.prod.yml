@@ -1,27 +1,4 @@
 services:
-  pgadmin:
-    container_name: k100-pgadmin
-    image: dpage/pgadmin4
-    environment:
-      - TZ=${TZ}
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD}
-      - PGADMIN_LISTEN_PORT=${PGADMIN_LISTEN_PORT}
-      - PGADMIN_SERVER_JSON_FILE=/pgadmin4/servers.json
-    ports:
-      - "5050:5050"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-      - ./pgadmin/servers.json:/pgadmin4/servers.json
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: ${RESTART}
-    # No external access - only accessible from localhost
-    networks:
-      - default
-      - k100
-
   db:
     container_name: k100-db
     image: postgres:14
@@ -46,12 +23,11 @@ services:
 
   api:
     container_name: k100-api
+    image: k100-api_prod
     build:
       context: ./backend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.prod
     volumes:
-      - ./backend:/app
-      - ./backend/data:/app/data
       - ./gpx:/gpx
     ports:
       - "8000:8000"
@@ -83,17 +59,15 @@ services:
 
   frontend:
     container_name: k100-frontend
+    image: k100-frontend_prod
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      dockerfile: Dockerfile.prod
     ports:
       - "3000:3000"
     environment:
       - TZ=${TZ}
-      - API_URL=http://api:8000
+      - API_URL=${API_URL}
       - NEXT_PUBLIC_PROJECT_NAME=${PROJECT_NAME}
     depends_on:
       - api
@@ -107,9 +81,6 @@ services:
       context: ./worker
       dockerfile: Dockerfile
     volumes:
-      - ./worker:/app
-      - ./backend:/app/backend
-      - ./backend/data:/app/data
       - ./gpx:/gpx
     environment:
       - TZ=${TZ}
@@ -133,31 +104,42 @@ services:
     networks:
       - k100
 
-  mailpit:
-    image: axllent/mailpit
-    container_name: k100-mailpit
-    restart: unless-stopped
-    volumes:
-      - mailpit_data:/data
-    ports:
-      - 8025:8025
-      - 1025:1025
+  cloudflared:
+    container_name: k100-cloudflared
+    image: cloudflare/cloudflared
+    restart: ${RESTART}
+    command: tunnel run
     environment:
       - TZ=${TZ}
-      - MP_MAX_MESSAGES=5000
-      - MP_DATABASE=/data/mailpit.db
-      - MP_SMTP_AUTH_ACCEPT_ANY=1
-      - MP_SMTP_AUTH_ALLOW_INSECURE=1
-    # No external access - only accessible from localhost
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
     networks:
-      - default
+      - proxy
+
+  nginx:
+    container_name: k100-nginx
+    image: nginx:alpine
+    # ports:
+    #   - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/logs:/var/log/nginx
+      - ./favicon.ico:/var/www/html/favicon.ico
+    depends_on:
+      - frontend
+      - api
+    restart: ${RESTART}
+    networks:
       - k100
+      - proxy
 
 volumes:
   postgres_data:
   pgadmin_data:
-  mailpit_data:
 
 networks:
+  proxy:
+    external: true
   k100:
     external: true

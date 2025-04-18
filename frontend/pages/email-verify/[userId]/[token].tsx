@@ -35,7 +35,7 @@ export default function EmailVerify() {
           setStravaAuthUrl(data.strava_auth_url);
         }
       } catch (error) {
-        setError(error.message || 'Something went wrong');
+        setError(error instanceof Error ? error.message : 'Something went wrong');
         setIsSuccess(false);
       } finally {
         setIsVerifying(false);

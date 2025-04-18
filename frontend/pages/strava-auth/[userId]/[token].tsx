@@ -69,7 +69,7 @@ export default function StravaAuth() {
         }
       } catch (error) {
         console.error('Error connecting to Strava:', error);
-        setError(error.message || 'Something went wrong');
+        setError(error instanceof Error ? error.message : 'Something went wrong');
         setIsSuccess(false);
       } finally {
         setIsConnecting(false);

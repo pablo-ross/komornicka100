@@ -55,7 +55,7 @@ export default function Register() {
       // On success, redirect to success page
       router.push('/registration-success');
     } catch (error) {
-      setSubmitError(error.message);
+      setSubmitError(error instanceof Error ? error.message : 'Registration failed');
     } finally {
       setIsSubmitting(false);
     }

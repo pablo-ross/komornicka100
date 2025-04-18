@@ -45,7 +45,7 @@ export default function Unregister() {
       
       setIsSuccess(true);
     } catch (error) {
-      setError(error.message);
+      setError(error instanceof Error ? error.message : 'Unregister request failed');
     } finally {
       setIsSubmitting(false);
     }
