@@ -32,7 +32,8 @@ nano frontend/.env.local
 
 4. Start the application with Docker Compose
 ```bash
-docker network create -d bridge k100
+docker network create --driver=bridge --internal k100
+docker network create --driver=bridge proxy
 docker-compose up -d
 ```
 
@@ -81,6 +82,7 @@ The following environment variables are used in the project:
 - `PGADMIN_EMAIL` - PgAdmin login
 - `PGADMIN_PASSWORD` - PgAdmin password
 - `PGADMIN_LISTEN_PORT` - PgAdmin local port
+- `TUNNEL_TOKEN` - Token for Cloudflare tunnel
 
 ## GPX verification logic
 
