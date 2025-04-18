@@ -65,7 +65,7 @@ services:
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USERNAME=${SMTP_USERNAME}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - FRONTEND_URL=http://localhost:3000
+      - FRONTEND_URL=${FRONTEND_URL}
       - PROJECT_NAME=${PROJECT_NAME}
       - SOURCE_GPX_PATH=gpx
     depends_on:
@@ -123,7 +123,7 @@ services:
       - SMTP_USERNAME=${SMTP_USERNAME}
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - SOURCE_GPX_PATH=gpx
-      - FRONTEND_URL=http://localhost:3000
+      - FRONTEND_URL=${FRONTEND_URL}
       - PROJECT_NAME=${PROJECT_NAME}
     depends_on:
       db:
