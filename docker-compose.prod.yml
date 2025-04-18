@@ -106,9 +106,11 @@ services:
 
   cloudflared:
     container_name: k100-cloudflared
-    image: cloudflare/cloudflared
+    image: cloudflare/cloudflared:latest
     restart: ${RESTART}
     command: tunnel run
+    volumes:
+      - cf_data:/etc/cloudflared
     environment:
       - TZ=${TZ}
       - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
@@ -137,6 +139,7 @@ services:
 volumes:
   postgres_data:
   pgadmin_data:
+  cf_data:
 
 networks:
   proxy:

@@ -66,7 +66,7 @@ case $1 in
   dev)
     echo "Starting Komornicka 100 in DEVELOPMENT mode..."
     stop_containers
-    docker compose up -d
+    docker compose up -d --remove-orphans
     echo "Development environment started! Access it at:"
     echo "  Frontend: http://localhost:3000"
     echo "  API: http://localhost:8000"
@@ -77,7 +77,7 @@ case $1 in
   prod)
     echo "Starting Komornicka 100 in PRODUCTION mode..."
     stop_containers
-    docker compose -f docker-compose.prod.yml up -d
+    docker compose -f docker-compose.prod.yml up -d --remove-orphans
     echo "Production environment started! Access it at:"
     echo "  Frontend: https://k100.komornikimtb.pl"
     ;;

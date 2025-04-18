@@ -80,6 +80,7 @@ services:
       start_period: 10s
     networks:
       - k100
+      - default
 
   frontend:
     container_name: k100-frontend
@@ -100,6 +101,7 @@ services:
     restart: ${RESTART}
     networks:
       - k100
+      - default
 
   worker:
     container_name: k100-worker
