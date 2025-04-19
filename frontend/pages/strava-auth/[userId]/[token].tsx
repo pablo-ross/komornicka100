@@ -14,7 +14,18 @@ export default function StravaAuth() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [stravaAuthUrl, setStravaAuthUrl] = useState('');
-  const [debugInfo, setDebugInfo] = useState({});
+
+  // Add a timeout to prevent infinite loading
+  useEffect(() => {
+    if (isConnecting) {
+      const timeoutTimer = setTimeout(() => {
+        setIsConnecting(false);
+        setErrorMessage("Connection timed out. Please try again.");
+      }, 15000); // 15 seconds timeout
+      
+      return () => clearTimeout(timeoutTimer);
+    }
+  }, [isConnecting]);
 
   useEffect(() => {
     // Only run once router is ready and we have the parameters
@@ -43,6 +54,7 @@ export default function StravaAuth() {
           console.log("Processing auth callback with code:", code);
           
           // Process the authorization code
+          // Note: We're using the same URL structure that was used for the initial authorization
           const response = await fetch(`/api/strava/auth/${userId}/${token}?code=${code}`);
           
           console.log("API response status:", response.status);
@@ -50,7 +62,9 @@ export default function StravaAuth() {
           // Check for non-JSON responses (like HTML error pages)
           const contentType = response.headers.get("content-type");
           if (!contentType || !contentType.includes("application/json")) {
-            throw new Error(`Server returned non-JSON response: ${contentType}`);
+            const errorText = await response.text();
+            console.error("Non-JSON response:", errorText.substring(0, 200));
+            throw new Error(`Server returned non-JSON response: ${contentType}. Response text: ${errorText.substring(0, 200)}...`);
           }
           
           const data = await response.json();
@@ -101,16 +115,6 @@ export default function StravaAuth() {
       } catch (error) {
         console.error('Error connecting to Strava:', error);
         setErrorMessage(error instanceof Error ? error.message : 'Something went wrong');
-        
-        // Collect debug info
-        setDebugInfo({
-          userId,
-          token,
-          code: code ? `${code.slice(0, 5)}...` : null,
-          frontendRedirect: frontend_redirect,
-          error: error instanceof Error ? error.message : String(error),
-          time: new Date().toISOString()
-        });
       } finally {
         setIsConnecting(false);
       }
@@ -169,14 +173,6 @@ export default function StravaAuth() {
             <p className="mb-4">
               There was an issue connecting your Strava account. Please try again.
             </p>
-            
-            {/* Debug information (hidden in production) */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mt-4 p-4 bg-gray-100 text-left text-xs overflow-auto max-h-40 rounded">
-                <p className="font-bold mb-2">Debug Info:</p>
-                <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
-              </div>
-            )}
             
             <div className="flex flex-col sm:flex-row justify-center mt-4 space-y-2 sm:space-y-0 sm:space-x-2">
               <Link href="/">

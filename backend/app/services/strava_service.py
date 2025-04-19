@@ -23,6 +23,17 @@ async def exchange_authorization_code(
     Returns:
         Dict containing token response or error
     """
+    # Clean up the redirect URI - remove any state parameter
+    # This is often added by the Strava OAuth flow and can cause mismatches
+    if "&state=" in redirect_uri:
+        redirect_uri = redirect_uri.split("&state=")[0]
+    
+    # Also remove any error or error_description parameters that might have been added
+    if "&error=" in redirect_uri:
+        redirect_uri = redirect_uri.split("&error=")[0]
+    
+    print(f"Exchanging code {code[:10]}... with redirect URI: {redirect_uri}")
+    
     url = "https://www.strava.com/oauth/token"
     data = {
         "client_id": settings.STRAVA_CLIENT_ID,
@@ -33,11 +44,18 @@ async def exchange_authorization_code(
     }
     
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(url, data=data)
+            print(f"Response status: {response.status_code}")
+            
+            if response.status_code != 200:
+                error_text = response.text
+                print(f"Error from Strava: {error_text}")
+                return {"error": f"Strava API error: {response.status_code}"}
+            
             return response.json()
     except Exception as e:
-        print(f"Error exchanging authorization code: {e}")
+        print(f"Error exchanging code: {str(e)}")
         return {"error": str(e)}
 
 

@@ -179,6 +179,22 @@ To force building images from scratch:
    docker exec k100-db pg_dump -U <username> <dbname> > backup_$(date +%Y%m%d).sql
    ```
 
+### Using the Database Cleanup Script
+
+Remember that this script permanently deletes data, so use it with caution, especially in production environments!
+
+#### Terminal
+
+   ```bash
+   python ./backend/scripts/clean_database.py --all
+   ```
+
+#### Docker
+
+   ```bash
+   docker compose exec api python scripts/clean_database.py --all
+   ```
+
 ## Extending the Application
 
 ### Adding New API Endpoints
