@@ -157,6 +157,12 @@ Alternatively, you can manually deploy using Docker Compose:
    docker compose -f docker-compose.prod.yml up -d
    ```
 
+To force building images from scratch:
+
+   ```bash
+   docker compose -f docker-compose.prod.yml build --no-cache
+   ```
+
 ### Production Considerations
 
 1. **SSL Certificates**: For NGINX setup, place your SSL certificates in `nginx/ssl/`:
