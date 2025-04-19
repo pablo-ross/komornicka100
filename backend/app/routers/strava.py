@@ -1,4 +1,5 @@
-# Modified version of backend/app/routers/strava.py
+# Fully fixed version of backend/app/routers/strava.py
+
 import logging
 import traceback
 from datetime import datetime
@@ -41,78 +42,16 @@ async def strava_auth(
     - android: Android devices
     - web: Desktop browsers (default)
     """
+    # Initialize variables to avoid scope issues
+    athlete = {}
+    token_response = {}
+    
     # Add detailed logging
-    logger.info(f"Strava auth called with user_id: {user_id}, token: {token[:5]}..., code: {code[:10] if code else 'None'}")
+    logger.info(f"Strava auth called with user_id: {user_id}, token: {token[:5] if token else ''}, code: {code[:10] if code else 'None'}")
     logger.info(f"Query parameters: {dict(request.query_params)}")
     
     try:
         # Check if we have the authorization code from Strava
-        
-        # If code is provided, exchange it for tokens
-        if code:
-            # ... existing code for token exchange ...
-            
-            # Update user with Strava information
-            try:
-                # Update user with Strava information
-                user.strava_id = str(athlete.get("id", ""))
-                user.strava_username = athlete.get("username", "")
-                user.is_strava_connected = True
-                
-                # Mark verification token as used
-                verification.used = True
-                
-                # Log the event
-                audit_log = models.AuditLog(
-                    user_id=user_id,
-                    event_type="strava_connected",
-                    description=f"User {user.email} connected Strava account",
-                    ip_address=request.client.host if request.client else None,
-                    user_agent=request.headers.get("user-agent"),
-                )
-                db.add(audit_log)
-                
-                # Commit all changes
-                db.commit()
-                
-                # Send confirmation email
-                send_strava_connected_email(user.email, user.first_name)
-                
-            except IntegrityError as e:
-                # Rollback the transaction
-                db.rollback()
-                
-                # Check if this is a duplicate Strava ID error
-                error_text = str(e)
-                if "ix_users_strava_id" in error_text and "duplicate key value" in error_text:
-                    # Find which user has this Strava ID
-                    strava_id = str(athlete.get("id", ""))
-                    existing_user = db.query(models.User).filter(
-                        models.User.strava_id == strava_id,
-                        models.User.is_active == True
-                    ).first()
-                    
-                    if existing_user:
-                        user_email = existing_user.email
-                        masked_email = mask_email(user_email)
-                        
-                        # Create a user-friendly error message
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"This Strava account is already connected to another user ({masked_email}). Please use a different Strava account or contact support if you believe this is an error."
-                        )
-                    else:
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="This Strava account is already connected to another user. Please use a different Strava account or contact support."
-                        )
-                else:
-                    # Re-raise any other database errors with a user-friendly message
-                    raise HTTPException(
-                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail="An error occurred while connecting your Strava account. Please try again later."
-                    )
-
         if not code:
             # No code provided, this is the initial request
             # Verify the token is valid
@@ -130,7 +69,7 @@ async def strava_auth(
             )
             
             if not verification:
-                logger.warning(f"Invalid or expired Strava authentication token: {token[:5]}...")
+                logger.warning(f"Invalid or expired Strava authentication token: {token[:5] if token else ''}")
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Invalid or expired Strava authentication token",
@@ -168,10 +107,10 @@ async def strava_auth(
             return {"auth_url": auth_url}
         
         # We have the code, now exchange it for tokens
-        logger.info(f"Code provided, exchanging for tokens: {code[:10]}...")
+        logger.info(f"Code provided, exchanging for tokens: {code[:10] if code else ''}")
         
         # First verify the token again
-        logger.debug(f"Verifying token for code exchange: {token[:5]}...")
+        logger.debug(f"Verifying token for code exchange: {token[:5] if token else ''}")
         verification = (
             db.query(models.VerificationToken)
             .filter(
@@ -185,7 +124,7 @@ async def strava_auth(
         )
         
         if not verification:
-            logger.warning(f"Invalid or expired Strava authentication token: {token[:5]}...")
+            logger.warning(f"Invalid or expired Strava authentication token: {token[:5] if token else ''}")
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Invalid or expired Strava authentication token",
@@ -228,78 +167,115 @@ async def strava_auth(
         logger.debug("Getting athlete data from token response")
         athlete = token_response.get("athlete", {})
         
-        # Save token to database
-        logger.debug(f"Saving token to database for user: {user_id}")
-        existing_token = db.query(models.Token).filter(models.Token.user_id == user_id).first()
-        
-        if existing_token:
-            # Update existing token
-            logger.debug("Updating existing token")
-            existing_token.access_token = token_response["access_token"]
-            existing_token.refresh_token = token_response["refresh_token"]
-            existing_token.token_type = token_response["token_type"]
-            existing_token.expires_at = token_response["expires_at"]
-            existing_token.updated_at = datetime.now()
-        else:
-            # Create new token
-            logger.debug("Creating new token")
-            new_token = models.Token(
+        try:
+            # Save token to database
+            logger.debug(f"Saving token to database for user: {user_id}")
+            existing_token = db.query(models.Token).filter(models.Token.user_id == user_id).first()
+            
+            if existing_token:
+                # Update existing token
+                logger.debug("Updating existing token")
+                existing_token.access_token = token_response["access_token"]
+                existing_token.refresh_token = token_response["refresh_token"]
+                existing_token.token_type = token_response["token_type"]
+                existing_token.expires_at = token_response["expires_at"]
+                existing_token.updated_at = datetime.now()
+            else:
+                # Create new token
+                logger.debug("Creating new token")
+                new_token = models.Token(
+                    user_id=user_id,
+                    access_token=token_response["access_token"],
+                    refresh_token=token_response["refresh_token"],
+                    token_type=token_response["token_type"],
+                    expires_at=token_response["expires_at"],
+                )
+                db.add(new_token)
+            
+            # Update user with Strava information
+            logger.debug(f"Updating user with Strava information: ID {athlete.get('id', '')}")
+            user.strava_id = str(athlete.get("id", ""))
+            user.strava_username = athlete.get("username", "")
+            user.is_strava_connected = True
+            
+            # Mark verification token as used
+            logger.debug("Marking verification token as used")
+            verification.used = True
+            
+            # Log the event
+            logger.debug("Creating audit log entry")
+            audit_log = models.AuditLog(
                 user_id=user_id,
-                access_token=token_response["access_token"],
-                refresh_token=token_response["refresh_token"],
-                token_type=token_response["token_type"],
-                expires_at=token_response["expires_at"],
+                event_type="strava_connected",
+                description=f"User {user.email} connected Strava account",
+                ip_address=request.client.host if request.client else None,
+                user_agent=request.headers.get("user-agent"),
             )
-            db.add(new_token)
-        
-        # Update user with Strava information
-        logger.debug(f"Updating user with Strava information: ID {athlete.get('id', '')}")
-        user.strava_id = str(athlete.get("id", ""))
-        user.strava_username = athlete.get("username", "")
-        user.is_strava_connected = True
-        
-        # Mark verification token as used
-        logger.debug("Marking verification token as used")
-        verification.used = True
-        
-        # Log the event
-        logger.debug("Creating audit log entry")
-        audit_log = models.AuditLog(
-            user_id=user_id,
-            event_type="strava_connected",
-            description=f"User {user.email} connected Strava account",
-            ip_address=request.client.host if request.client else None,
-            user_agent=request.headers.get("user-agent"),
-        )
-        db.add(audit_log)
-        
-        # Commit all changes
-        logger.debug("Committing database changes")
-        db.commit()
-        
-        # Send confirmation email
-        logger.debug(f"Sending confirmation email to {user.email}")
-        send_strava_connected_email(user.email, user.first_name)
-        
-        # Create initial leaderboard entry
-        logger.debug(f"Creating or updating leaderboard entry for user: {user_id}")
-        leaderboard_entry = db.query(models.Leaderboard).filter(models.Leaderboard.id == user_id).first()
-        if not leaderboard_entry:
-            new_entry = models.Leaderboard(
-                id=user_id,
-                first_name=user.first_name,
-                last_name=user.last_name,
-                activity_count=0,
-                last_updated=datetime.now()
-            )
-            db.add(new_entry)
+            db.add(audit_log)
+            
+            # Commit all changes
+            logger.debug("Committing database changes")
             db.commit()
+            
+            # Send confirmation email
+            logger.debug(f"Sending confirmation email to {user.email}")
+            send_strava_connected_email(user.email, user.first_name)
+            
+            # Create initial leaderboard entry
+            logger.debug(f"Creating or updating leaderboard entry for user: {user_id}")
+            leaderboard_entry = db.query(models.Leaderboard).filter(models.Leaderboard.id == user_id).first()
+            if not leaderboard_entry:
+                new_entry = models.Leaderboard(
+                    id=user_id,
+                    first_name=user.first_name,
+                    last_name=user.last_name,
+                    activity_count=0,
+                    last_updated=datetime.now()
+                )
+                db.add(new_entry)
+                db.commit()
+            
+        except IntegrityError as e:
+            # Rollback the transaction
+            db.rollback()
+            
+            # Check if this is a duplicate Strava ID error
+            error_text = str(e)
+            if "ix_users_strava_id" in error_text and "duplicate key value" in error_text:
+                # Find which user has this Strava ID
+                strava_id = str(athlete.get("id", ""))
+                existing_user = db.query(models.User).filter(
+                    models.User.strava_id == strava_id,
+                    models.User.is_active == True
+                ).first()
+                
+                if existing_user:
+                    user_email = existing_user.email
+                    masked_email = mask_email(user_email)
+                    
+                    # Create a user-friendly error message
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"This Strava account is already connected to another user ({masked_email}). Please use a different Strava account or contact support if you believe this is an error."
+                    )
+                else:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="This Strava account is already connected to another user. Please use a different Strava account or contact support."
+                    )
+            else:
+                # Re-raise any other database errors with a user-friendly message
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="An error occurred while connecting your Strava account. Please try again later."
+                )
         
         logger.info("Strava connection successful")
         return {
             "message": "Strava account successfully connected",
             "redirect_url": f"{settings.FRONTEND_URL}/thank-you"
         }
+        
     except HTTPException:
         # Re-raise HTTP exceptions
         logger.error(f"HTTP Exception occurred: {traceback.format_exc()}")
@@ -313,32 +289,6 @@ async def strava_auth(
             detail=f"Internal server error: {str(e)}"
         )
 
-# Helper function to mask email addresses for privacy
-def mask_email(email: str) -> str:
-    """
-    Mask an email address for privacy
-    Example: john.doe@example.com -> j***e@e***e.com
-    """
-    if not email or '@' not in email:
-        return "***"
-        
-    local, domain = email.split('@')
-    
-    # Mask the local part
-    if len(local) <= 2:
-        masked_local = local[0] + "*"
-    else:
-        masked_local = local[0] + "*" * (len(local) - 2) + local[-1]
-    
-    # Mask the domain (before the dot)
-    domain_parts = domain.split('.')
-    if len(domain_parts[0]) <= 2:
-        masked_domain = domain_parts[0][0] + "*"
-    else:
-        masked_domain = domain_parts[0][0] + "*" * (len(domain_parts[0]) - 2) + domain_parts[0][-1]
-    
-    # Combine everything
-    return f"{masked_local}@{masked_domain}.{'.'.join(domain_parts[1:])}"
 
 @router.post("/strava/webhook")
 async def strava_webhook(
@@ -371,3 +321,31 @@ async def strava_webhook_verification(
     
     # Default response (not a proper verification request)
     return {"message": "Webhook verification endpoint"}
+
+
+# Helper function to mask email addresses for privacy
+def mask_email(email: str) -> str:
+    """
+    Mask an email address for privacy
+    Example: john.doe@example.com -> j***e@e***e.com
+    """
+    if not email or '@' not in email:
+        return "***"
+        
+    local, domain = email.split('@')
+    
+    # Mask the local part
+    if len(local) <= 2:
+        masked_local = local[0] + "*"
+    else:
+        masked_local = local[0] + "*" * (len(local) - 2) + local[-1]
+    
+    # Mask the domain (before the dot)
+    domain_parts = domain.split('.')
+    if len(domain_parts[0]) <= 2:
+        masked_domain = domain_parts[0][0] + "*"
+    else:
+        masked_domain = domain_parts[0][0] + "*" * (len(domain_parts[0]) - 2) + domain_parts[0][-1]
+    
+    # Combine everything
+    return f"{masked_local}@{masked_domain}.{'.'.join(domain_parts[1:])}"
