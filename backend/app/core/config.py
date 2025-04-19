@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     # Strava API settings
     STRAVA_CLIENT_ID: str
     STRAVA_CLIENT_SECRET: str
+    STRAVA_WEBHOOK_VERIFY_TOKEN: str = "kmtb_strava_webhook_verify_token"  # Default value, should be changed in production
     
     # Email settings
     SMTP_SERVER: str

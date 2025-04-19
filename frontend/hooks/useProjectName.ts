@@ -5,9 +5,11 @@ export default function useProjectName(): string {
 
   useEffect(() => {
     // Try to get the project name from the environment variable
-    const envProjectName = process.env.NEXT_PUBLIC_PROJECT_NAME;
-    if (envProjectName) {
-      setProjectName(envProjectName);
+    if (typeof window !== 'undefined') {
+      const envProjectName = process.env.NEXT_PUBLIC_PROJECT_NAME;
+      if (envProjectName) {
+        setProjectName(envProjectName);
+      }
     }
   }, []);
 

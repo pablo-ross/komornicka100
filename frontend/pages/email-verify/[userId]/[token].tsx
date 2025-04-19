@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Link from 'next/link';
 import useProjectName from '../../../hooks/useProjectName';
 import PageTitle from '../../../components/PageTitle';
+import StravaConnectButton from '../../../components/StravaConnectButton';
 
 export default function EmailVerify() {
   const projectName = useProjectName();
@@ -70,12 +71,7 @@ export default function EmailVerify() {
             {stravaAuthUrl ? (
               <div>
                 <p className="mb-4">The next step is to connect your Strava account.</p>
-                <a 
-                  href={stravaAuthUrl}
-                  className="inline-block bg-[#FC4C02] hover:bg-[#E34402] text-white font-bold py-2 px-6 rounded"
-                >
-                  Connect with Strava
-                </a>
+                <StravaConnectButton authUrl={stravaAuthUrl} />
               </div>
             ) : (
               <Link href="/">

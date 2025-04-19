@@ -22,10 +22,16 @@ async def strava_auth(
     token: str,
     request: Request,
     db: Session = Depends(get_db),
-    code: Optional[str] = None
+    code: Optional[str] = None,
+    platform: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
     Handle Strava OAuth callback with authorization code
+    
+    The platform parameter can be used to detect mobile devices:
+    - ios: iOS devices
+    - android: Android devices
+    - web: Desktop browsers (default)
     """
     # Check if we have the authorization code from Strava
     if not code:
@@ -57,10 +63,16 @@ async def strava_auth(
                 detail="User not found",
             )
         
-        # Generate Strava authorization URL
+        # Generate Strava authorization URL - use mobile endpoints if on mobile
         redirect_uri = f"{settings.FRONTEND_URL}/strava-auth/{user_id}/{token}?frontend_redirect=true"
+        
+        # Determine if we should use the mobile OAuth endpoint
+        auth_base_url = "https://www.strava.com/oauth/authorize"
+        if platform in ['ios', 'android']:
+            auth_base_url = "https://www.strava.com/oauth/mobile/authorize"
+        
         auth_url = (
-            f"https://www.strava.com/oauth/authorize"
+            f"{auth_base_url}"
             f"?client_id={settings.STRAVA_CLIENT_ID}"
             f"&response_type=code"
             f"&redirect_uri={redirect_uri}"
@@ -193,11 +205,17 @@ async def strava_webhook(
 @router.get("/strava/webhook")
 async def strava_webhook_verification(
     request: Request,
+    hub_mode: Optional[str] = None,
+    hub_verify_token: Optional[str] = None,
+    hub_challenge: Optional[str] = None,
     db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """
-    Verify Strava webhook subscription (not implemented in this version)
+    Verify Strava webhook subscription
     """
-    # This would handle Strava webhook verification
-    # For a hub.challenge response
-    return {"message": "Webhook verification not implemented"}
+    # Handle proper Strava webhook verification
+    if hub_mode == "subscribe" and hub_verify_token == settings.STRAVA_WEBHOOK_VERIFY_TOKEN:
+        return {"hub.challenge": hub_challenge}
+    
+    # Default response (not a proper verification request)
+    return {"message": "Webhook verification endpoint"}

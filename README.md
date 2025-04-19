@@ -94,6 +94,7 @@ Detailed documentation is available in the following files:
 
 - [DEVELOPER.md](DEVELOPER.md) - Comprehensive guide for developers
 - [STRAVA_SETUP.md](STRAVA_SETUP.md) - How to set up the Strava API integration
+- [STRAVA_MOBILE.md](STRAVA_MOBILE.md) - Details on the mobile-friendly Strava authentication
 - [GPX_VERIFICATION.md](GPX_VERIFICATION.md) - Details on the GPX route verification logic
 
 ## GPX Verification Logic

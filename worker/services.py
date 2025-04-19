@@ -1,3 +1,4 @@
+# worker/services.py
 import logging
 import math
 import smtplib
@@ -59,18 +60,22 @@ def send_email(
         # Connect to server and send email
         if settings.SMTP_PORT == 1025:  # For Mailpit testing (no auth, no SSL/TLS)
             with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT) as server:
-                server.sendmail(settings.SMTP_USERNAME, recipients, msg.as_string())
+                server.sendmail(settings.SMTP_FROM, recipients, msg.as_string())
         elif settings.SMTP_PORT == 465:  # For SSL connections
             with smtplib.SMTP_SSL(settings.SMTP_SERVER, settings.SMTP_PORT, context=context) as server:
-                server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
-                server.sendmail(settings.SMTP_USERNAME, recipients, msg.as_string())
+                if settings.SMTP_USERNAME and settings.SMTP_PASSWORD:
+                    server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+                server.sendmail(settings.SMTP_FROM, recipients, msg.as_string())
         else:  # For TLS connections (usually port 587)
             with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT) as server:
                 server.ehlo()
                 server.starttls(context=context)
                 server.ehlo()
-                server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
-                server.sendmail(settings.SMTP_USERNAME, recipients, msg.as_string())
+                if settings.SMTP_USERNAME and settings.SMTP_PASSWORD:
+                    server.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+                server.sendmail(settings.SMTP_FROM, recipients, msg.as_string())
+        
+        logger.info(f"Email sent successfully to {to_email}")
         return True
     except Exception as e:
         # Log the error
@@ -191,9 +196,17 @@ async def get_activity_by_id(
     params = {"include_all_efforts": False}
     
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:  # Increased timeout
             response = await client.get(url, headers=headers, params=params)
+            
+            if response.status_code != 200:
+                logger.error(f"Strava API error: {response.status_code} - {response.text}")
+                return {"error": f"Strava API returned status code {response.status_code}"}
+                
             return response.json()
+    except httpx.TimeoutException:
+        logger.error(f"Timeout getting activity details for {activity_id}")
+        return {"error": "Request timed out"}
     except Exception as e:
         logger.error(f"Error getting activity details: {e}")
         return {"error": str(e)}
@@ -211,9 +224,17 @@ async def get_activity_streams(
     }
     
     try:
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:  # Increased timeout
             response = await client.get(url, headers=headers, params=params)
+            
+            if response.status_code != 200:
+                logger.error(f"Strava API streams error: {response.status_code} - {response.text}")
+                return {"error": f"Strava API returned status code {response.status_code}"}
+                
             return response.json()
+    except httpx.TimeoutException:
+        logger.error(f"Timeout getting activity streams for {activity_id}")
+        return {"error": "Request timed out"}
     except Exception as e:
         logger.error(f"Error getting activity streams: {e}")
         return {"error": str(e)}
@@ -368,12 +389,15 @@ async def update_leaderboard(db: Session, user_id: str) -> None:
     # Get user
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
+        logger.warning(f"User not found for leaderboard update: {user_id}")
         return
     
     # Count approved activities
     activity_count = db.query(Activity).filter(
         Activity.user_id == user_id
     ).count()
+    
+    logger.info(f"Updating leaderboard for user {user_id}, activity count: {activity_count}")
     
     # Update or create leaderboard entry
     leaderboard_entry = db.query(Leaderboard).filter(

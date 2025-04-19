@@ -189,6 +189,43 @@ async def get_activity_streams(
         return {"error": str(e)}
 
 
+async def create_strava_auth_url(
+    user_id: str,
+    token: str,
+    platform: Optional[str] = None
+) -> str:
+    """
+    Create Strava authentication URL based on platform
+    
+    Args:
+        user_id: User ID for the redirect
+        token: Verification token for the redirect
+        platform: Platform (ios, android, web)
+        
+    Returns:
+        Strava authentication URL
+    """
+    # Generate redirect URI (same for all platforms)
+    redirect_uri = f"{settings.FRONTEND_URL}/strava-auth/{user_id}/{token}?frontend_redirect=true"
+    
+    # Determine base URL based on platform
+    oauth_base_url = "https://www.strava.com/oauth/authorize"
+    if platform in ['ios', 'android']:
+        oauth_base_url = "https://www.strava.com/oauth/mobile/authorize"
+    
+    # Create the full auth URL
+    auth_url = (
+        f"{oauth_base_url}"
+        f"?client_id={settings.STRAVA_CLIENT_ID}"
+        f"&response_type=code"
+        f"&redirect_uri={redirect_uri}"
+        f"&approval_prompt=force"
+        f"&scope=activity:read,profile:read_all"
+    )
+    
+    return auth_url
+
+
 async def ensure_fresh_token(db: Session, user_id: str) -> Tuple[bool, str]:
     """
     Ensure the user has a fresh Strava access token
