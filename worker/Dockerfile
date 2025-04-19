@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Create directory for GPX files
-RUN mkdir -p /gpx
+RUN mkdir -p gpx
 
 # Command to run the worker
 CMD ["python", "worker.py"]

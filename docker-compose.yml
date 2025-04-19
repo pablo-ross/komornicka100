@@ -1,3 +1,9 @@
+x-services-volume:
+  &services-volume
+  type: bind
+  source: ./gpx
+  target: /app/gpx
+
 services:
   pgadmin:
     container_name: k100-pgadmin
@@ -52,7 +58,7 @@ services:
     volumes:
       - ./backend:/app
       - ./backend/data:/app/data
-      - ./gpx:/gpx
+      - <<: *services-volume
     ports:
       - "8000:8000"
     environment:
@@ -113,7 +119,7 @@ services:
       - ./worker:/app
       - ./backend:/app/backend
       - ./backend/data:/app/data
-      - ./gpx:/gpx
+      - <<: *services-volume
     environment:
       - TZ=${TZ}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}

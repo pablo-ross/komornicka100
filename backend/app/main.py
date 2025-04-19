@@ -2,8 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .core.config import settings
-from .database import engine, Base
+from .database import SessionLocal, engine, Base
 from .routers import activities, auth, strava, users
+from .services.source_gpx_service import init_source_gpx_database
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -12,6 +13,15 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
 )
+
+# Initialize source GPX database on startup
+@app.on_event("startup")
+async def startup_event():
+    """Initialize the application on startup"""
+    # Create a database session
+    db = SessionLocal()
+    # Initialize source GPX database
+    await init_source_gpx_database(db)
 
 # Configure CORS
 app.add_middleware(
@@ -27,7 +37,6 @@ app.include_router(auth.router, prefix=f"{settings.API_V1_STR}", tags=["auth"])
 app.include_router(users.router, prefix=f"{settings.API_V1_STR}", tags=["users"])
 app.include_router(strava.router, prefix=f"{settings.API_V1_STR}", tags=["strava"])
 app.include_router(activities.router, prefix=f"{settings.API_V1_STR}", tags=["activities"])
-
 
 @app.get("/api/health")
 def health_check():

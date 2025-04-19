@@ -1,3 +1,9 @@
+x-services-volume:
+  &services-volume
+  type: bind
+  source: ./gpx
+  target: /app/gpx
+
 services:
   db:
     container_name: k100-db
@@ -27,8 +33,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
-    volumes:
-      - ./gpx:/gpx
+    volumes: 
+      - <<: *services-volume
     # ports:
     #   - "8000:8000"
     environment:
@@ -84,7 +90,7 @@ services:
       context: ./worker
       dockerfile: Dockerfile
     volumes:
-      - ./gpx:/gpx
+      - <<: *services-volume
     environment:
       - TZ=${TZ}
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT}/${POSTGRES_DB}
