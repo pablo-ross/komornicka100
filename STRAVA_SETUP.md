@@ -13,8 +13,8 @@ This guide explains how to set up the Strava API integration for the Komornicka 
 3. Fill in the application details:
    - **Application Name**: Komornicka 100
    - **Category**: Choose "Other"
-   - **Website**: Your application's URL (e.g., https://k100.komornikimtb.pl)
-   - **Authorization Callback Domain**: Your application's domain (e.g., k100.komornikimtb.pl)
+   - **Website**: Your application's URL (e.g., https://your-domain.com)
+   - **Authorization Callback Domain**: Your application's domain (e.g., your-domain.com)
    - **Description**: A brief description of your application
 
 4. Read and agree to the Strava API agreement, then click "Create"
@@ -37,6 +37,34 @@ This guide explains how to set up the Strava API integration for the Komornicka 
    ```
    NEXT_PUBLIC_STRAVA_CLIENT_ID=your_client_id
    ```
+
+## Applying for Strava API Verification
+
+**Important:** By default, Strava API applications are limited to connecting with only one athlete (the application creator). For a contest application that needs to connect to multiple athletes, you must apply for verification to increase your app's capacity.
+
+### Verification Process
+
+1. Develop your application with basic functionality
+2. Test thoroughly with your own Strava account
+3. Apply for verification through the [Strava Developer Program](https://developers.strava.com/)
+4. In your application, explain:
+   - The purpose of your application
+   - Expected number of users
+   - How you'll use the Strava data
+   - Privacy and data protection measures
+
+### Current API Limits After Verification
+
+For this application, Strava has approved the following limits:
+
+- **Overall Rate Limit**: 600 requests every 15 minutes, up to 6,000 requests per day
+- **Read Rate Limit**: 300 requests every 15 minutes, up to 3,000 requests per day
+- **Athlete Capacity**: 999 athletes can connect to the application
+
+Make sure your application handles these limits appropriately:
+- Implement rate limiting in your API calls
+- Add retry logic with exponential backoff for failed requests
+- Schedule background jobs to distribute API calls evenly
 
 ## Setting Up Strava Webhook (Optional)
 
@@ -176,10 +204,11 @@ For better debugging:
 
 ## Strava API Rate Limits
 
-Be aware of Strava API rate limits:
+Be aware of Strava API rate limits (after verification):
 
-- 100 requests per 15 minutes
-- 1000 requests per day
+- 600 requests per 15 minutes
+- 6,000 requests per day
+- Read-specific limits: 300 requests per 15 minutes, 3,000 requests per day
 - Daily limits reset at midnight UTC
 
 Implement proper rate limiting and caching in your application to avoid hitting these limits.
